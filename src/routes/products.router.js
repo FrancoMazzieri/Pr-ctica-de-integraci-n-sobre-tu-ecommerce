@@ -1,11 +1,12 @@
 const { Router } = require('express')
-const ProductManager = require('../dao/fileSystem/productmanager')
+const productsModel = require('../models/products')
+const MongoProductManager = require('../dao/mongo/mongoProductManager')
 
 const ProductRouter = Router();
 
-const productos = new ProductManager()
+const mongoProductManager  = new MongoProductManager()
 
-const leerProductos = productos.getProduct()
+const leerProductos = mongoProductManager.getProduct()
 
 ProductRouter.get('/', async (req, res) => {
     let limit = parseInt(req.query.limit)
@@ -36,17 +37,17 @@ ProductRouter.get('/:id', async (req, res) => {
 })
 ProductRouter.post("/", async (req, res) => {
     let newProduct = req.body
-    res.send(await productos.addProducts(newProduct))
+    res.send(await mongoProductManager.addProducts(newProduct))
 })
 ProductRouter.put("/:id", async (req, res) => {
     let id = req.params.id
     let updateProducts = req.body
-    res.send(await productos.updateProducts(id, updateProducts))
+    res.send(await mongoProductManager.updateProducts(id, updateProducts))
 })
 
 ProductRouter.delete("/:id", async (req, res) => {
     let id = req.params.id
-    res.send(await productos.deleteProduct(id))
+    res.send(await mongoProductManager.deleteProduct(id))
 })
 
 
