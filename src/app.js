@@ -7,7 +7,7 @@ const ProductManager = require('./dao/fileSystem/productmanager')
 //const product = require('./ClasesProduct/productmanager')
 const { Server, Socket } = require('socket.io')
 const dbConnection = require('./config/dbConnection')
-
+const chatModel =require('./models/chat')
 const productManager = new ProductManager()
 
 const app = express()
@@ -44,11 +44,16 @@ httpserver.on("Error", (error) => {
 
 const wsServer = new Server(httpserver)
 
+let productos
+let mensajes
+
 wsServer.on('connection', async (clientSocket) => {
     console.log(`Cliente conectado, ID: ${clientSocket.id}`)
     try {
         productos = await productManager.getProduct()
+        mensajes = await chatModel.find()
         clientSocket.emit('mensajeServer', productos)
+        clientSocket.emit('mensajesChat', mensajes)
     } catch (error) {
         console.log(error)
     }
@@ -89,5 +94,17 @@ wsServer.on('connection', async (clientSocket) => {
             console.log(error)
         }
     })
+
+    clientSocket.on('msg', async data => {
+        console.log(data);
+        try {
+            await chatModel.insertMany(data)
+            let datos = await chatModel.find()
+            wsServer.emit('newMsg', datos)
+        } catch (error) {
+            console.log(error)
+        }
+    })
+
 
 })
